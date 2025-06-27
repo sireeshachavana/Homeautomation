@@ -1,0 +1,52 @@
+// C++ code
+//
+#include <IRremote.h>
+
+int button = 0;
+int mapCodeToButton(unsigned long code) {
+ 
+  if ((code & 0x0000FFFF) == 0x0000BF00) {
+    
+    code >>= 16;
+    
+    if (((code >> 8) ^ (code & 0x00FF)) == 0x00FF) {
+      return code & 0xFF;
+    }
+  }
+  return -1;
+}
+
+int readInfrared() {
+  int result = -1;
+ 
+  if (IrReceiver.decode()) {
+    
+    unsigned long code = IrReceiver.decodedIRData.decodedRawData;
+    
+    result = mapCodeToButton(code);
+  
+    IrReceiver.resume();
+  }
+  return result;
+}
+
+void setup()
+{
+  IrReceiver.begin(3);
+
+  Serial.begin(9600);
+  pinMode(7, OUTPUT);
+}
+
+void loop()
+{
+  button = readInfrared();
+  Serial.println(button);
+  if (button == 16) {
+    digitalWrite(7, HIGH);
+  }
+  if (button == 17) {
+    digitalWrite(7, LOW);
+  }
+  delay(10); // Delay a little bit to improve simulation performance
+}
